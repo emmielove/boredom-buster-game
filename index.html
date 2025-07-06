@@ -55,27 +55,36 @@
     </div>
   </div>
 
-  <!-- Keep all other games here -->
-  <!-- You already have Flappy Chick, Memory 2, Hangman, Color Catch, and Cookie Clicker implemented -->
-
 <script>
 function showGame(id){
   document.querySelectorAll('.game').forEach(g=>g.style.display='none');
   document.getElementById(id).style.display='block';
+
+  // Snake game control
+  if (id === "snake") {
+    snakeRunning = true;
+    resetSnake();
+    drawSnake();
+  } else {
+    snakeRunning = false;
+  }
 }
 
 // Snake Game
 const snakeCanvas = document.getElementById("snakeCanvas");
 const sctx = snakeCanvas.getContext("2d");
 let snake = [{x:150,y:150}], dir = "right", food = {x:0,y:0};
+let snakeRunning = false;
 function placeFood() {
   food = {x:Math.floor(Math.random()*15)*20, y:Math.floor(Math.random()*15)*20};
 }
-placeFood();
-document.addEventListener("keydown", e => {
-  if(e.key.startsWith("Arrow")) dir = e.key.replace("Arrow","".toLowerCase());
-});
+function resetSnake() {
+  snake = [{x:150,y:150}];
+  dir = "right";
+  placeFood();
+}
 function drawSnake() {
+  if (!snakeRunning) return;
   sctx.clearRect(0,0,300,300);
   for(let p of snake) {
     sctx.fillStyle = "green";
@@ -89,13 +98,17 @@ function drawSnake() {
   if(dir=="up") head.y-=20;
   if(dir=="down") head.y+=20;
   if(head.x<0||head.x>=300||head.y<0||head.y>=300||snake.some(p=>p.x==head.x&&p.y==head.y)) {
-    alert("Game over!"); snake=[{x:150,y:150}]; dir="right"; placeFood();
+    alert("Game over!");
+    resetSnake();
+  } else {
+    snake.unshift(head);
+    if(head.x==food.x && head.y==food.y) placeFood(); else snake.pop();
   }
-  snake.unshift(head);
-  if(head.x==food.x && head.y==food.y) placeFood(); else snake.pop();
   setTimeout(drawSnake,150);
 }
-drawSnake();
+document.addEventListener("keydown", e => {
+  if(e.key.startsWith("Arrow")) dir = e.key.replace("Arrow", "").toLowerCase();
+});
 
 // Tic Tac Toe
 let board = ["", "", "", "", "", "", "", "", ""], turn = "X";
