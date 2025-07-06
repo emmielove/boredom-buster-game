@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Boredom Buster</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff9f0;
+      color: #333;
+      text-align: center;
+      padding: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .game {
+      display: none;
+      margin-top: 20px;
+    }
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+    }
+    td {
+      width: 60px;
+      height: 60px;
+      font-size: 30px;
+      border: 2px solid #333;
+      cursor: pointer;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎮 Boredom Buster</h1>
+<p>Choose a game:</p>
+<!-- Menu Buttons -->
+<button onclick="showGame('clicker')">🖱️ Clicker</button>
+<button onclick="showGame('rps')">✊ RPS</button>
+<button onclick="showGame('guess')">🔢 Guess</button>
+<button onclick="showGame('memory')">🧠 Memory</button>
+<button onclick="showGame('snake')">🐍 Snake</button>
+<button onclick="showGame('tictactoe')">❌⭕ Tic Tac Toe</button>
+<button onclick="showGame('draw')">🎨 Draw</button>
+<button onclick="showGame('quiz')">🧠 Quiz</button>
+<button onclick="showGame('platformer')">🕹️ Maze</button>
+
+<!-- Clicker -->
+<div class="game" id="clicker">
+  <h2>Clicker</h2>
+  <p>Clicks: <span id="clicks">0</span></p>
+  <button onclick="clickCount()">Click me!</button>
+</div>
+
+<!-- Rock Paper Scissors -->
+<div class="game" id="rps">
+  <h2>Rock Paper Scissors</h2>
+  <p id="rpsResult">Pick one:</p>
+  <button onclick="playRPS('rock')">Rock</button>
+  <button onclick="playRPS('paper')">Paper</button>
+  <button onclick="playRPS('scissors')">Scissors</button>
+</div>
+
+<!-- Number Guess -->
+<div class="game" id="guess">
+  <h2>Guess a Number (1-10)</h2>
+  <input type="number" id="guessInput" min="1" max="10">
+  <button onclick="checkGuess()">Guess</button>
+  <p id="guessResult"></p>
+</div>
+
+<!-- Memory Game -->
+<div class="game" id="memory">
+  <h2>Memory Match</h2>
+  <p>Find all pairs!</p>
+  <button onclick="startMemory()">Start</button>
+  <div id="memoryGame"></div>
+</div>
+
+<!-- Snake -->
+<div class="game" id="snake">
+  <h2>Snake Game</h2>
+  <canvas id="snakeCanvas" width="300" height="300" style="border:1px solid #000;"></canvas>
+  <p>Use arrow keys</p>
+</div>
+
+<!-- Tic Tac Toe -->
+<div class="game" id="tictactoe">
+  <h2>Tic Tac Toe</h2>
+  <table id="tttBoard"></table>
+  <p id="tttStatus">X's turn</p>
+</div>
+
+<!-- Drawing Pad -->
+<div class="game" id="draw">
+  <h2>Drawing Pad</h2>
+  <canvas id="drawCanvas" width="300" height="300" style="border:1px solid #000; background:#fff;"></canvas>
+</div>
+
+<!-- Quiz -->
+<div class="game" id="quiz">
+  <h2>Quiz Game</h2>
+  <p id="quizQuestion"></p>
+  <div id="quizAnswers"></div>
+</div>
+
+<!-- Maze Platformer -->
+<div class="game" id="platformer">
+  <h2>Mini Maze</h2>
+  <div id="mazeBox" style="width:200px;height:200px;background:#eee;position:relative;margin:auto;">
+    <div id="player" style="width:20px;height:20px;background:red;position:absolute;top:0;left:0;"></div>
+    <div id="goal" style="width:20px;height:20px;background:green;position:absolute;top:180px;left:180px;"></div>
+  </div>
+  <p>Get to the green square using arrow keys!</p>
+</div>
+
+<script>
+  function showGame(id) {
+    document.querySelectorAll(".game").forEach(g => g.style.display = "none");
+    document.getElementById(id).style.display = "block";
+  }
+
+  // Clicker
+  let clicks = 0;
+  function clickCount() {
+    clicks++;
+    document.getElementById("clicks").textContent = clicks;
+  }
+
+  // RPS
+  function playRPS(player) {
+    const bot = ['rock', 'paper', 'scissors'][Math.floor(Math.random()*3)];
+    let result = "Draw!";
+    if ((player == 'rock' && bot == 'scissors') || (player == 'paper' && bot == 'rock') || (player == 'scissors' && bot == 'paper')) result = "You win!";
+    else if (player != bot) result = "You lose!";
+    document.getElementById("rpsResult").textContent = `You: ${player}, Bot: ${bot}. ${result}`;
+  }
+
+  // Guess
+  const secretNumber = Math.floor(Math.random() * 10) + 1;
+  function checkGuess() {
+    let guess = parseInt(document.getElementById("guessInput").value);
+    document.getElementById("guessResult").textContent = (guess === secretNumber) ? "Correct!" : "Wrong!";
+  }
+
+  // Memory
+  let memCards = ['🍎','🍌','🍎','🍌'], memSel = [], memMatch = [];
+  function startMemory() {
+    memCards = ['🍎','🍌','🍎','🍌'].sort(()=>0.5-Math.random());
+    const box = document.getElementById("memoryGame");
+    box.innerHTML = '';
+    memSel = []; memMatch = [];
+    memCards.forEach((val, i) => {
+      let b = document.createElement("button");
+      b.textContent = '?';
+      b.onclick = () => flipMem(b, i);
+      box.appendChild(b);
+    });
+  }
+  function flipMem(btn, i) {
+    if (memMatch.includes(i) || memSel.includes(i)) return;
+    btn.textContent = memCards[i];
+    memSel.push(i);
+    if (memSel.length === 2) {
+      setTimeout(() => {
+        let [i1, i2] = memSel;
+        if (memCards[i1] === memCards[i2]) memMatch.push(i1, i2);
+        else {
+          document.querySelectorAll("#memoryGame button")[i1].textContent = '?';
+          document.querySelectorAll("#memoryGame button")[i2].textContent = '?';
+        }
+        memSel = [];
+      }, 600);
+    }
+  }
+
+  // Snake
+  let snake = [{x:150,y:150}], dir = 'right', food = {x:100,y:100};
+  function drawSnake() {
+    const c = document.getElementById("snakeCanvas");
+    const ctx = c.getContext("2d");
+    ctx.clearRect(0, 0, 300, 300);
+    ctx.fillStyle = "lime";
+    snake.forEach(p => ctx.fillRect(p.x, p.y, 10, 10));
+    ctx.fillStyle = "red";
+    ctx.fillRect(food.x, food.y, 10, 10);
+    let head = {x: snake[0].x, y: snake[0].y};
+    if (dir === 'right') head.x += 10;
+    if (dir === 'left') head.x -= 10;
+    if (dir === 'up') head.y -= 10;
+    if (dir === 'down') head.y += 10;
+    if (head.x === food.x && head.y === food.y) {
+      food = {x: Math.floor(Math.random()*30)*10, y: Math.floor(Math.random()*30)*10};
+    } else {
+      snake.pop();
+    }
+    snake.unshift(head);
+    if (head.x<0 || head.x>290 || head.y<0 || head.y>290) snake = [{x:150,y:150}];
+  }
+  setInterval(drawSnake, 100);
+  document.addEventListener("keydown", e => {
+    if (e.key === "ArrowUp") dir = 'up';
+    if (e.key === "ArrowDown") dir = 'down';
+    if (e.key === "ArrowLeft") dir = 'left';
+    if (e.key === "ArrowRight") dir = 'right';
+  });
+
+  // Tic Tac Toe
+  let board = ["", "", "", "", "", "", "", "", ""], turn = "X";
+  function buildTTT() {
+    const t = document.getElementById("tttBoard");
+    t.innerHTML = "";
+    board.forEach((val, i) => {
+      let cell = document.createElement("td");
+      cell.textContent = val;
+      cell.onclick = () => {
+        if (!board[i]) {
+          board[i] = turn;
+          turn = turn === "X" ? "O" : "X";
+          buildTTT();
+          document.getElementById("tttStatus").textContent = turn + "'s turn";
+        }
+      };
+      let row = Math.floor(i / 3);
+      if (!t.rows[row]) t.insertRow(row);
+      t.rows[row].insertCell(-1).appendChild(cell);
+    });
+  }
+  buildTTT();
+
+  // Drawing Pad
+  const drawCanvas = document.getElementById("drawCanvas");
+  const ctx = drawCanvas.getContext("2d");
+  let drawing = false;
+  drawCanvas.onmousedown = () => drawing = true;
+  drawCanvas.onmouseup = () => drawing = false;
+  drawCanvas.onmousemove = e => {
+    if (drawing) {
+      const rect = drawCanvas.getBoundingClientRect();
+      ctx.fillStyle = "black";
+      ctx.fillRect(e.clientX - rect.left, e.clientY - rect.top, 3, 3);
+    }
+  };
+
+  // Quiz
+  const questions = [
+    { q: "What color is the sky?", a: ["Blue", "Green", "Red"], c: 0 },
+    { q: "2 + 2 = ?", a: ["3", "4", "5"], c: 1 },
+  ];
+  let currentQ = 0;
+  function showQuiz() {
+    const q = questions[currentQ];
+    document.getElementById("quizQuestion").textContent = q.q;
+    const box = document.getElementById("quizAnswers");
+    box.innerHTML = "";
+    q.a.forEach((ans, i) => {
+      let b = document.createElement("button");
+      b.textContent = ans;
+      b.onclick = () => {
+        alert(i === q.c ? "Correct!" : "Wrong!");
+        currentQ = (currentQ + 1) % questions.length;
+        showQuiz();
+      };
+      box.appendChild(b);
+    });
+  }
+  showQuiz();
+
+  // Maze
+  let player = document.getElementById("player");
+  document.addEventListener("keydown", e => {
+    let x = parseInt(player.style.left), y = parseInt(player.style.top);
+    if (e.key === "ArrowUp") y -= 10;
+    if (e.key === "ArrowDown") y += 10;
+    if (e.key === "ArrowLeft") x -= 10;
+    if (e.key === "ArrowRight") x += 10;
+    x = Math.max(0, Math.min(180, x));
+    y = Math.max(0, Math.min(180, y));
+    player.style.left = x + "px";
+    player.style.top = y + "px";
+    if (x === 180 && y === 180) alert("🎉 You reached the goal!");
+  });
+</script>
+
+</body>
+</html>
